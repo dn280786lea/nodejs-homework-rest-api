@@ -1,19 +1,26 @@
-/* const express = require("express");
-const Joi = require("joi");
-
-const router = express.Router(); */
 const { Contact } = require("../models/contact");
 const HttpError = require("../helpers/HttpError");
 
 const get = async (req, res, next) => {
   try {
-    const result = await Contact.find();
+    const { _id: owner } = req.user;
+    const { limit = 20, page = 1, favorite } = req.query;
+    const skip = (page - 1) * limit;
+    const isFavorite = favorite === "true";
+    const result = await Contact.find(
+      { owner, favorite: isFavorite },
+      "name email phone favorite",
+      {
+        page,
+        skip,
+        limit,
+      }
+    ).populate("owner", "email subscription");
     res.json(result);
   } catch (error) {
     next(error);
   }
 };
-
 const getContactById = async (req, res, next) => {
   console.log(req.params);
   try {
@@ -30,7 +37,8 @@ const getContactById = async (req, res, next) => {
 
 const addContact = async (req, res, next) => {
   try {
-    const result = await Contact.create(req.body);
+    const { _id: owner } = req.user;
+    const result = await Contact.create({ ...req.body, owner });
     res.status(201).json(result);
   } catch (error) {
     next(error);
@@ -40,6 +48,7 @@ const addContact = async (req, res, next) => {
 const removeContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
+    const { id } = req.params;
     const result = await Contact.findByIdAndDelete(contactId);
     console.log(result);
     if (!result) {
@@ -58,6 +67,7 @@ const updateContact = async (req, res, next) => {
       throw HttpError(400, "Body must have at least one field");
     }
     const { contactId } = req.params;
+    const { id } = req.params;
     const result = await Contact.findByIdAndUpdate(contactId, req.body, {
       new: true,
     });
@@ -78,6 +88,7 @@ const updateStatusContact = async (req, res, next) => {
       throw new HttpError(400, "missing field favorite");
     }
     const { contactId } = req.params;
+    const { id } = req.params;
     const result = await Contact.findByIdAndUpdate(contactId, req.body, {
       new: true,
     });
