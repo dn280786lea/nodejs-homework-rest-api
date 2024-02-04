@@ -9,12 +9,11 @@ const register = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+
     if (user) {
-      throw new HttpError(409, "Email in use");
+      throw HttpError(409, "Email in use");
     }
-
     const hashPassword = await bcrypt.hash(password, 10);
-
     const newUser = await User.create({ ...req.body, password: hashPassword });
 
     res.status(201).json({
@@ -62,11 +61,9 @@ const getCurrent = (req, res) => {
 
 const logout = async (req, res) => {
   const { _id } = req.user;
-  await User.findByIdAndUpdate({ token: "" });
+  await User.findByIdAndUpdate(_id, { token: "" });
 
-  res.json({
-    message: "Logout success",
-  });
+  res.status(204).json({ message: "No Content" });
 };
 
 const updateSubscription = async (req, res) => {
