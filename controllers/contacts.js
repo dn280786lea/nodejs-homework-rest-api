@@ -10,8 +10,8 @@ const get = async (req, res, next) => {
     const result = await Contact.find(
       { owner, favorite: isFavorite },
       "name email phone favorite",
-      "-createdAt -updatedAt",
       {
+        page,
         skip,
         limit,
       }
@@ -23,12 +23,10 @@ const get = async (req, res, next) => {
 };
 const getContactById = async (req, res, next) => {
   console.log(req.params);
+  const { _id: owner } = req.user;
   try {
-    const { _id: owner } = req.user;
     const { contactId } = req.params;
-    const result = await Contact.findById(contactId)
-      .where("owner")
-      .equals(owner);
+    const result = await Contact.findOne({ _id: contactId, owner });
     if (!result) {
       throw HttpError(404, "Not found");
     }
