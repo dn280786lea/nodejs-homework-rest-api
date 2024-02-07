@@ -26,7 +26,12 @@ const userSchema = new Schema(
       default: "starter",
     },
     token: String,
+    avatarURL: {
+      type: String,
+      required: true,
+    },
   },
+
   { versionKey: false, timestamps: true }
 );
 
@@ -39,10 +44,7 @@ const registerSchema = Joi.object({
   password: Joi.string().min(6).required().messages({
     "any.required": "Password must be longer than 6 symbols",
   }),
-  subscription: Joi.string().messages({
-    "any.required":
-      "subscription must be only one of 3 categorii: starter, pro, business",
-  }),
+  subscription: Joi.string(),
 });
 
 const loginSchema = Joi.object({
@@ -55,13 +57,10 @@ const loginSchema = Joi.object({
 });
 
 const favoriteSchema = Joi.object({
-  subscription: Joi.string()
-    .required()
-    .valid("starter", "pro", "business")
-    .messages({
-      "any.required":
-        "subscription must be only one of 3 categorii: starter, pro, business",
-    }),
+  subscription: Joi.string().valid("starter", "pro", "business").messages({
+    "any.required":
+      "subscription must be only one of 3 categorii: starter, pro, business",
+  }),
 });
 
 const schemas = {
