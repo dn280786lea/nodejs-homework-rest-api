@@ -71,12 +71,18 @@ const favoriteSchema = Joi.object({
       "subscription must be only one of 3 categorii: starter, pro, business",
   }),
 });
-
+const verificationEmailSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.email": "Email must be a valid address",
+    "any.required": "Missing required email field",
+  }),
+});
 const schemas = {
   userSchema,
   registerSchema,
   loginSchema,
   favoriteSchema,
+  verificationEmailSchema,
 };
 
 const User = model("user", userSchema);

@@ -60,8 +60,9 @@ const verifyEmail = async (req, res, next) => {
     }
     await User.findByIdAndUpdate(user._id, {
       veryfi: true,
-      verificationToken: "",
+      verificationToken: null,
     });
+
     res.status(200).json({
       message: "Verification successful",
     });
@@ -71,26 +72,31 @@ const verifyEmail = async (req, res, next) => {
 };
 
 const resendVerifyEmail = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new HttpError(401, "missing required field email");
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    console.log(user);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+    if (user.verify) {
+      throw HttpError(400, "Verification has already been passed");
+    }
+
+    const verifyEmail = {
+      to: email,
+      subject: "Verify your email",
+      html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click here to verify email</a>`,
+    };
+
+    await sendEmail(verifyEmail);
+
+    res.json({
+      message: "Verification email sent",
+    });
+  } catch (error) {
+    next(error);
   }
-  if (user.verify) {
-    throw new HttpError(400, "Verification has already been passed");
-  }
-
-  const verifyEmail = {
-    to: email,
-    subject: "Verify your email",
-    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click here to verify email</a>`,
-  };
-
-  await sendEmail(verifyEmail);
-
-  res.json({
-    message: "Verification email sent",
-  });
 };
 
 const login = async (req, res, next) => {
@@ -101,7 +107,7 @@ const login = async (req, res, next) => {
     if (!user) {
       throw HttpError(401, "Email or password is wrong");
     }
-    if (user.verify) {
+    if (!user.verify) {
       throw HttpError(401, "Email not veryfied");
     }
 
