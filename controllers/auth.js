@@ -59,7 +59,7 @@ const verifyEmail = async (req, res, next) => {
       throw HttpError(401, "User not found");
     }
     await User.findByIdAndUpdate(user._id, {
-      veryfi: true,
+      veryfy: true,
       verificationToken: null,
     });
 
@@ -90,7 +90,6 @@ const resendVerifyEmail = async (req, res) => {
     };
 
     await sendEmail(verifyEmail);
-
     res.json({
       message: "Verification email sent",
     });
